@@ -12,16 +12,16 @@ Choose your preferred installation method:
 
 ```bash
 # npm
-npm i --save hyperliquid
+npm i --save hyperliquid-prx
 
 # yarn
-yarn add hyperliquid
+yarn add hyperliquid-prx
 
 # pnpm
-pnpm add hyperliquid
+pnpm add hyperliquid-prx
 
 # bun
-bun i hyperliquid
+bun i hyperliquid-prx
 ```
 
 ### Direct Web Usage
