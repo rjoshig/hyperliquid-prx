@@ -1,10 +1,10 @@
-import { InfoAPI } from './rest/info';
-import { ExchangeAPI } from './rest/exchange';
+import { InfoAPI } from './rest/infoProxy';
+import { ExchangeAPI } from './rest/exchangeProxy';
 import { WebSocketClient } from './websocket/connection';
 import { WebSocketSubscriptions } from './websocket/subscriptions';
 import { RateLimiter } from './utils/rateLimiter';
 import * as CONSTANTS from './types/constants';
-import { CustomOperations } from './rest/custom';
+import { CustomOperations } from './rest/customProxy';
 import { ethers } from 'ethers';
 import { SymbolConversion } from './utils/symbolConversion';
 import { AuthenticationError } from './utils/errors';
@@ -17,6 +17,14 @@ export interface HyperliquidConfig {
     walletAddress?: string;
     vaultAddress?: string;
     maxReconnectAttempts?: number;
+    proxyConfig?: {
+        host: string;
+        port: number;
+        auth?: {
+            username: string;
+            password: string;
+        };
+    };
 }
 
 export class Hyperliquid {
@@ -36,10 +44,17 @@ export class Hyperliquid {
     private _walletAddress?: string;
     private vaultAddress?: string | null = null;
     private enableWs: boolean;
-
+    private proxyConfig?: {
+        host: string;
+        port: number;
+        auth?: {
+            username: string;
+            password: string;
+        };
+    };
     constructor(params: HyperliquidConfig = {}) {
-        const { enableWs = true, privateKey, testnet = false, walletAddress, vaultAddress, maxReconnectAttempts } = params;
-        
+        const { enableWs = true, privateKey, testnet = false, walletAddress, vaultAddress, maxReconnectAttempts, proxyConfig } = params;
+
         // Browser-specific security warnings
         if (environment.isBrowser) {
             if (privateKey) {
@@ -56,20 +71,21 @@ export class Hyperliquid {
         this.symbolConversion = new SymbolConversion(baseURL, this.rateLimiter);
         this.walletAddress = walletAddress || null;
         this.vaultAddress = vaultAddress || null;
-        
+        this.proxyConfig = proxyConfig
+
         // Initialize info API
-        this.info = new InfoAPI(baseURL, this.rateLimiter, this.symbolConversion, this);
-        
+        this.info = new InfoAPI(baseURL, this.rateLimiter, this.symbolConversion, this, this.proxyConfig);
+
         // Initialize WebSocket only if enabled and supported
         this.enableWs = enableWs && environment.supportsWebSocket();
         if (this.enableWs && !environment.supportsWebSocket()) {
             console.warn('WebSocket support is not available in this environment. WebSocket features will be disabled.');
             this.enableWs = false;
         }
-        
+
         this.ws = new WebSocketClient(testnet, maxReconnectAttempts);
         this.subscriptions = new WebSocketSubscriptions(this.ws, this.symbolConversion);
-        
+
         // Create proxy objects for exchange and custom
         this.exchange = this.createAuthenticatedProxy(ExchangeAPI);
         this.custom = this.createAuthenticatedProxy(CustomOperations);
@@ -92,16 +108,16 @@ export class Hyperliquid {
 
     private async initialize(): Promise<void> {
         if (this._initialized) return;
-        
+
         try {
             // Initialize symbol conversion first
             await this.symbolConversion.initialize();
-            
+
             // Connect WebSocket if enabled and supported
             if (this.enableWs && environment.supportsWebSocket()) {
                 await this.ws.connect();
             }
-            
+
             this._initialized = true;
             this._initializing = null;
         } catch (error) {
@@ -118,26 +134,27 @@ export class Hyperliquid {
         try {
             const formattedPrivateKey = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`;
             new ethers.Wallet(formattedPrivateKey); // Validate the private key
-            
+
             this.exchange = new ExchangeAPI(
-                testnet, 
-                formattedPrivateKey, 
-                this.info, 
-                this.rateLimiter, 
-                this.symbolConversion, 
+                testnet,
+                formattedPrivateKey,
+                this.info,
+                this.rateLimiter,
+                this.symbolConversion,
                 this.walletAddress,
                 this,
                 this.vaultAddress
             );
-            
+
             this.custom = new CustomOperations(
-                this.exchange, 
-                this.info, 
-                formattedPrivateKey, 
-                this.symbolConversion, 
+                this.exchange,
+                this.info,
+                formattedPrivateKey,
+                this.symbolConversion,
                 this.walletAddress
+
             );
-            
+
             this.isValidPrivateKey = true;
         } catch (error) {
             console.warn("Invalid private key provided. Some functionalities will be limited.");
@@ -160,18 +177,25 @@ export class Hyperliquid {
         try {
             const formattedPrivateKey = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}` as `0x${string}`;
             new ethers.Wallet(formattedPrivateKey); // Validate the private key
-            
+
             this.exchange = new ExchangeAPI(
-                testnet, 
-                formattedPrivateKey, 
-                this.info, 
-                this.rateLimiter, 
-                this.symbolConversion, 
+                testnet,
+                formattedPrivateKey,
+                this.info,
+                this.rateLimiter,
+                this.symbolConversion,
                 this.walletAddress,
                 this,
-                this.vaultAddress
+                this.vaultAddress,
+                this.proxyConfig // Pass proxyConfig
             );
-            this.custom = new CustomOperations(this.exchange, this.info, formattedPrivateKey, this.symbolConversion, this.walletAddress);
+            this.custom = new CustomOperations(
+                this.exchange,
+                this.info,
+                formattedPrivateKey,
+                this.symbolConversion,
+                this.walletAddress,
+            );
             this.isValidPrivateKey = true;
         } catch (error) {
             console.warn("Invalid private key provided. Some functionalities will be limited.");

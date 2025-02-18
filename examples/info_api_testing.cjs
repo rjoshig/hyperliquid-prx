@@ -2,7 +2,7 @@ const { Hyperliquid } = require('../dist/index');
 const readline = require('readline');
 
 const private_key = "";
-const user_address = "0xd852e3a7a2abca6aecd0fa39147851ae96eba5d7";
+const user_address = "0xFf06c6a7BFD0b3971615804Ce1Ca3c9dc20255ca";
 
 const raw_mode = true;
 
@@ -21,7 +21,7 @@ function waitForInput(prompt) {
 
 async function testInfoAPI(sdk) {
     console.log("Testing InfoAPI methods:");
-    
+
     console.log("getAllMids:");
     console.log(await sdk.info.getAllMids(raw_mode));
     await waitForInput("Press Enter to continue...");
@@ -108,7 +108,7 @@ async function testInfoAPI(sdk) {
 
 async function testSpotInfoAPI(sdk) {
     console.log("\nTesting SpotInfoAPI methods:");
-    
+
     console.log("getSpotMeta:");
     console.log(await sdk.info.spot.getSpotMeta(raw_mode));
     await waitForInput("Press Enter to continue...");
@@ -132,7 +132,7 @@ async function testSpotInfoAPI(sdk) {
 
 async function testPerpetualsInfoAPI(sdk) {
     console.log("\nTesting PerpetualsInfoAPI methods:");
-    
+
     console.log("getMeta:");
     console.log(await sdk.info.perpetuals.getMeta(raw_mode));
     await waitForInput("Press Enter to continue...");
@@ -178,7 +178,7 @@ async function main() {
     try {
         // Initialize the SDK before using any methods
         // await sdk.connect();
-        
+
         await testInfoAPI(sdk);
         await testSpotInfoAPI(sdk);
         await testPerpetualsInfoAPI(sdk);
