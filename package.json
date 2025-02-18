@@ -1,17 +1,16 @@
 {
   "name": "hyperliquid-prx",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "description": "SDK for Hyperliquid API - fork from https://github.com/nomeida/hyperliquid",
   "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "browser": "./dist/browser.js",
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs"
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
     }
   },
   "browser": {
