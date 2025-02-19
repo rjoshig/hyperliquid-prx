@@ -18,24 +18,33 @@ export class HttpApi {
      private client: AxiosInstance;
      private endpoint: string;
      private rateLimiter: RateLimiter;
+     private proxyConfig?: ProxyConfig;
 
      constructor(baseUrl: string,
           endpoint: string = "/",
           rateLimiter: RateLimiter,
           proxyConfig?: { host: string, port: number, auth?: { username: string, password: string } }) {
           this.endpoint = endpoint;
+          this.proxyConfig = proxyConfig;
 
           const agent = proxyConfig ? new HttpsProxyAgent(
                `https://${proxyConfig.auth ? `${proxyConfig.auth.username}:${proxyConfig.auth.password}@` : ''}${proxyConfig.host}:${proxyConfig.port}`) : undefined;
-          console.log(`Proxy httpApi....`)
+
+          if (proxyConfig) {
+               console.log(`HttpApi initialized with proxy: ${proxyConfig.auth?.username || 'no_username'}:******:${proxyConfig.host}:${proxyConfig.port}`);
+
+          }
+
+
           this.client = axios.create({
                baseURL: baseUrl,
                headers: {
                     'Content-Type': 'application/json',
                },
                httpsAgent: agent,
-               timeout: 60000
+               timeout: 50000
           });
+
 
           axiosRetry(this.client, {
                retries: 3, // Number of retries
@@ -53,6 +62,17 @@ export class HttpApi {
 
      async makeRequest<T>(payload: any, weight: number = 2, endpoint: string = this.endpoint): Promise<T> {
           try {
+
+               //                    console.log("HttpApi: Making  API request with payload", payload)
+
+               // if (this.client.defaults.httpsAgent) {
+               //      const agent = this.client.defaults.httpsAgent as HttpsProxyAgent<any>;
+               //      const proxyAuthUsername = this.proxyConfig?.auth ? this.proxyConfig.auth.username : 'no_username';
+               //      console.log(`Using proxy (makeRequest): ${proxyAuthUsername}:*****:${this.proxyConfig?.host}:${this.proxyConfig?.port}`);
+               // }
+
+
+               // console.log("HttpApi: Making  API request with payload", payload)
                await this.rateLimiter.waitForToken(weight);
                const response = await this.client.post(endpoint, payload);
                return response.data;
