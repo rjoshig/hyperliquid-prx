@@ -25,6 +25,7 @@ export interface HyperliquidConfig {
             password: string;
         };
     };
+    httpTimeout?: number
 }
 
 export class Hyperliquid {
@@ -51,9 +52,11 @@ export class Hyperliquid {
             username: string;
             password: string;
         };
+
     };
+    private httpTimeout?: number
     constructor(params: HyperliquidConfig = {}) {
-        const { enableWs = true, privateKey, testnet = false, walletAddress, vaultAddress, maxReconnectAttempts, proxyConfig } = params;
+        const { enableWs = true, privateKey, testnet = false, walletAddress, vaultAddress, maxReconnectAttempts, proxyConfig, httpTimeout = 50000 } = params;
 
         // Browser-specific security warnings
         if (environment.isBrowser) {
@@ -72,9 +75,9 @@ export class Hyperliquid {
         this.walletAddress = walletAddress || null;
         this.vaultAddress = vaultAddress || null;
         this.proxyConfig = proxyConfig
-
+        this.httpTimeout = httpTimeout;
         // Initialize info API
-        this.info = new InfoAPI(baseURL, this.rateLimiter, this.symbolConversion, this, this.proxyConfig);
+        this.info = new InfoAPI(baseURL, this.rateLimiter, this.symbolConversion, this, this.proxyConfig, this.httpTimeout);
 
         // Initialize WebSocket only if enabled and supported
         this.enableWs = enableWs && environment.supportsWebSocket();

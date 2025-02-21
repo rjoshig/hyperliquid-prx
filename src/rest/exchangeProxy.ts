@@ -51,11 +51,12 @@ export class ExchangeAPI {
           walletAddress: string | null = null,
           parent: Hyperliquid,
           vaultAddress: string | null = null,
-          proxyConfig?: { host: string, port: number, auth?: { username: string, password: string } }
+          proxyConfig?: { host: string, port: number, auth?: { username: string, password: string } },
+          httpTimeout?: number
      ) {
           const baseURL = testnet ? CONSTANTS.BASE_URLS.TESTNET : CONSTANTS.BASE_URLS.PRODUCTION;
           this.IS_MAINNET = !testnet;
-          this.httpApi = new HttpApi(baseURL, ENDPOINTS.EXCHANGE, rateLimiter, proxyConfig);
+          this.httpApi = new HttpApi(baseURL, ENDPOINTS.EXCHANGE, rateLimiter, httpTimeout, proxyConfig);
           this.wallet = new ethers.Wallet(privateKey);
           this.symbolConversion = symbolConversion;
           this.walletAddress = walletAddress;

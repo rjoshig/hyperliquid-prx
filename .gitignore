@@ -7,3 +7,5 @@ src/**/*.js
 .vscode/
 /dist
 *.env
+examples/exchange_api_testing_proxy.cjs
+examples/rjoshig_test.js

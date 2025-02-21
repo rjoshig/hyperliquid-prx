@@ -20,10 +20,14 @@ export class HttpApi {
      private rateLimiter: RateLimiter;
      private proxyConfig?: ProxyConfig;
 
-     constructor(baseUrl: string,
+     constructor(
+          baseUrl: string,
           endpoint: string = "/",
           rateLimiter: RateLimiter,
-          proxyConfig?: { host: string, port: number, auth?: { username: string, password: string } }) {
+          httpTimeout?: number,
+          proxyConfig?: { host: string, port: number, auth?: { username: string, password: string } }
+
+     ) {
           this.endpoint = endpoint;
           this.proxyConfig = proxyConfig;
 
@@ -31,7 +35,7 @@ export class HttpApi {
                `https://${proxyConfig.auth ? `${proxyConfig.auth.username}:${proxyConfig.auth.password}@` : ''}${proxyConfig.host}:${proxyConfig.port}`) : undefined;
 
           if (proxyConfig) {
-               console.log(`HttpApi initialized with proxy: ${proxyConfig.auth?.username || 'no_username'}:******:${proxyConfig.host}:${proxyConfig.port}`);
+               console.log(`HttpApi: timeout: ${httpTimeout} : Proxy Username: ${proxyConfig.auth?.username || 'no_username'}:******:${proxyConfig.host}:${proxyConfig.port}`);
 
           }
 
@@ -42,9 +46,10 @@ export class HttpApi {
                     'Content-Type': 'application/json',
                },
                httpsAgent: agent,
-               timeout: 50000
+               timeout: httpTimeout
           });
 
+          // console.dir(this.client, { depth: 3 })
 
           axiosRetry(this.client, {
                retries: 3, // Number of retries

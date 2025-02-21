@@ -43,9 +43,10 @@ export class InfoAPI {
           rateLimiter: RateLimiter,
           symbolConversion: SymbolConversion,
           parent: Hyperliquid,
-          proxyConfig?: { host: string, port: number, auth?: { username: string, password: string } }
+          proxyConfig?: { host: string, port: number, auth?: { username: string, password: string } },
+          httpTimeout?: number
      ) {
-          this.httpApi = new HttpApi(baseURL, ENDPOINTS.INFO, rateLimiter, proxyConfig);
+          this.httpApi = new HttpApi(baseURL, ENDPOINTS.INFO, rateLimiter, httpTimeout, proxyConfig);
           this.symbolConversion = symbolConversion;
           this.parent = parent;
 
